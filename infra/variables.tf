@@ -13,3 +13,13 @@ variable "private_subnets" {
 variable "public_subnets" {
   type = "list"
 }
+
+variable "database_subnets" {
+  type = "list"
+}
+
+variable "db_retention_period" {
+}
+
+variable "db_apply_immediately" {
+}
