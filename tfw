@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+
+checkmark="\xe2\x98\x91"
+cross="\xe2\x98\x92"
+
+startred='\033[0;31m'
+endcolor='\033[0m'
+startgreen='\033[0;32m'
+
+echob() {
+  echo -e "\033[1m$1\033[0m"
+}
+
+echoCheck() {
+  echo -e "$startgreen $checkmark $1 $endcolor"
+}
+
+echoError() {
+  echo -e "$startred $cross $1 $endcolor"
+}
+
+dtf() {
+  pushd "$1" > /dev/null
+    shift
+    terraform "$@"
+  popd > /dev/null
+}
+
+check() { # checks is a tool is working
+  if ! type "$1" > /dev/null 2>&1; then
+    echoError "$2"
+    exit 1
+  else
+    echoCheck "$3"
+  fi
+}
+
+goal_prepare() {
+  check "terraform" "Terraform not installed!" "Terraform available"
+  dtf init init
+  dtf init apply
+  dtf infra init
+}
+
+goal_plan() {
+  ENV=${1}
+  TF_WORKSPACE=${ENV} dtf infra plan -var-file=env/${ENV}.tfvars
+}
+
+goal_apply() {
+  ENV=${1}
+  TF_WORKSPACE=${ENV} dtf infra apply -var-file=env/${ENV}.tfvars
+}
+
+goal_destroy() {
+  ENV=${1}
+  TF_WORKSPACE=${ENV} dtf infra destroy -var-file=env/${ENV}.tfvars
+}
+
+if type -t "goal_$1" &>/dev/null; then
+  goal_$1 ${@:2}
+else
+  echo "usage: $0 <goal>
+
+goal:
+    prepare                  -- make sure everything is set up correctly so this project can actually work
+    plan                     -- plan infrastructure changes
+    apply                    -- apply infrastructure changes
+"
+  exit 1
+fi

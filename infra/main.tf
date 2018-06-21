@@ -20,7 +20,7 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "1.36.0"
 
-  name = "VPC - ${terraform.workspace}"
+  name = "${local.app_name}-${terraform.workspace}"
   cidr = "${var.cidr}"
 
   azs = "${var.azs}"
@@ -39,11 +39,12 @@ module "vpc" {
   }
 
   vpc_tags = {
-    Name = "VPC - ${terraform.workspace}"
+    Name = "${local.app_name}-${terraform.workspace}"
   }
 
   tags = {
     Terraform = "true"
+    Application = "${local.app_name}"
     Environment = "${terraform.workspace}"
   }
 }
