@@ -22,7 +22,7 @@ echoError() {
 dtf() {
   pushd "$1" > /dev/null
     shift
-    terraform "$@"
+    terraform $@
   popd > /dev/null
 }
 
@@ -42,19 +42,31 @@ goal_prepare() {
   dtf infra init
 }
 
-goal_plan() {
-  ENV=${1}
-  TF_WORKSPACE=${ENV} dtf infra plan -var-file=env/${ENV}.tfvars
+goal_dev() {
+  exec_goal dev "$@"
 }
 
-goal_apply() {
-  ENV=${1}
-  TF_WORKSPACE=${ENV} dtf infra apply -var-file=env/${ENV}.tfvars
+goal_prod() {
+  exec_goal prod "$@"
 }
 
-goal_destroy() {
+exec_goal() {
+  VARS=""
   ENV=${1}
-  TF_WORKSPACE=${ENV} dtf infra destroy -var-file=env/${ENV}.tfvars
+  shift
+  CMD=${1}
+  shift
+  if [[ "$CMD" != "output" ]]; then
+    VARS="-var-file=env/dev.tfvars"
+  fi
+  TF_WORKSPACE=dev dtf infra ${CMD} ${VARS} "$@"
+}
+
+goal_shuttle() {
+  BASTION=`./tfw ${1} output bastion_ip`
+  CIDR=`awk '/cidr/{gsub("\"","");print $3}' infra/env/${1}.tfvars`
+  shift
+  sshuttle -v -e "ssh -i infra/keys/id_rsa" -r ec2-user@${BASTION} "${CIDR%%[[:cntrl:]]}" "$@"
 }
 
 if type -t "goal_$1" &>/dev/null; then
@@ -64,8 +76,9 @@ else
 
 goal:
     prepare                  -- make sure everything is set up correctly so this project can actually work
-    plan                     -- plan infrastructure changes
-    apply                    -- apply infrastructure changes
+    dev <commands>           -- work on dev
+    prod <commands>          -- work on prod
+    shuttle <env>
 "
   exit 1
 fi

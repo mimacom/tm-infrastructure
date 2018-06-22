@@ -1,5 +1,6 @@
 provider "aws" {
   region = "${local.region}"
+  //region = "eu-central-1"
   shared_credentials_file = "~/.aws/credentials"
   profile = "mimacom"
 }
@@ -16,52 +17,19 @@ terraform {
   }
 }
 
-module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
-  version = "1.36.0"
+module "bastion" {
+  source = "modules/bastion"
 
-  name = "${local.app_name}-${terraform.workspace}"
-  cidr = "${var.cidr}"
+  app_name = "${local.app_name}"
+  security_group_id = "${module.bastion_sg.this_security_group_id}"
+  subnet_id = "${module.vpc.public_subnets[0]}"
 
-  azs = "${var.azs}"
-  public_subnets = "${var.public_subnets}"
-  private_subnets = "${var.private_subnets}"
-  database_subnets = "${var.database_subnets}"
-
-  enable_nat_gateway = true
-  single_nat_gateway = true
-  enable_dns_hostnames = true
-  enable_dns_support = true
-
-  public_subnet_tags = {
-    Tier = "public"
-  }
-
-  private_subnet_tags = {
-    Tier = "private"
-  }
-
-  vpc_tags = {
-    Name = "${local.app_name}-${terraform.workspace}"
-  }
-
-  tags = {
-    Terraform = "true"
-    Application = "${local.app_name}"
-    Environment = "${terraform.workspace}"
-  }
-}
-
-data "aws_secretsmanager_secret" "dbpass_secret" {
-  name = "${terraform.workspace}/db/password"
-}
-
-data "aws_secretsmanager_secret_version" "data" {
-  secret_id = "${data.aws_secretsmanager_secret.dbpass_secret.id}"
+  key_name = "${aws_key_pair.local.key_name}"
 }
 
 module "db" {
   source = "terraform-aws-modules/rds/aws"
+  version = "1.19.0"
 
   identifier = "${local.app_name}-${terraform.workspace}-db"
 
@@ -90,4 +58,19 @@ module "db" {
 
   skip_final_snapshot = true
   apply_immediately = "${var.db_apply_immediately}"
+}
+
+module "nomad" {
+  source  = "modules/nomad-cluster"
+
+  vpc_ip = "${module.vpc.vpc_id}"
+  subnet_ids = "${module.vpc.private_subnets}"
+
+  cluster_name = "${local.app_name}-${terraform.workspace}"
+  client_instance_type = "${lookup(var.nomad_cluster, "client_instance_type")}"
+  num_servers = "${lookup(var.nomad_cluster, "num_servers")}"
+  num_clients = "${lookup(var.nomad_cluster, "num_clients")}"
+  ssh_key_name = "${aws_key_pair.local.key_name}"
+
+  app_name = "${local.app_name}"
 }

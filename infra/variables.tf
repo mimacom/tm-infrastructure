@@ -23,3 +23,7 @@ variable "db_retention_period" {
 
 variable "db_apply_immediately" {
 }
+
+variable "nomad_cluster" {
+  type = "map"
+}
