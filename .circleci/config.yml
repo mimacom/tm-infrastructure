@@ -85,7 +85,7 @@ jobs:
               rm fmt_result.txt
               git checkout -- .
               echo
-              echo "Please run terraform fmt"
+              echo "Please run terraform fmt and commit again"
               exit 1
             fi
       - *save_repo
