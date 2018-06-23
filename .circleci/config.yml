@@ -34,7 +34,7 @@ save_repo: &save_repo
 
 set_terraform_environment: &set_terraform_environment
   run:
-    name: set terraform environment
+    name: Set Terraform environment
     command: |
       cd && touch $BASH_ENV
       if [ "${CIRCLE_BRANCH}" == "master" ]; then
@@ -45,10 +45,10 @@ set_terraform_environment: &set_terraform_environment
 
 terraform_init: &terraform_init
   run:
-    name: terraform init
+    name: Terraform init
     command: |
       source $BASH_ENV
-      ./tfw ${TF_ENV} -input=false init
+      ./tfw ${TF_ENV} init -input=false
 
 apply_job: &apply_job
   <<: *default_config
@@ -59,12 +59,15 @@ apply_job: &apply_job
     - attach_workspace:
         at: *working_directory
     - run:
-        name: terraform apply
+        name: Terraform apply
         command: |
           source $BASH_ENV
           if [[ -f plan/${TF_ENV}-tf.plan ]]; then
-            ./tfw ${TF_ENV} apply -input=false --auto-approve plan/${TF_ENV}-tf.plan
+            DIR=`pwd`
+            cd infra
+            TF_WORKSPACE=${TF_ENV} terraform apply -input=false --auto-approve ${DIR}/plan/${TF_ENV}-tf.plan
           fi
+          echo "No plan generated, skipping.."
 
 jobs:
 
@@ -74,7 +77,7 @@ jobs:
       - checkout
       - *set_terraform_environment
       - run:
-          name: terraform fmt
+          name: Terraform fmt
           command: |
             source $BASH_ENV
             if [ $(./tfw fmt | grep -v .terraform | tee fmt_result.txt | wc -l) -gt 0 ]; then
@@ -84,7 +87,7 @@ jobs:
               rm fmt_result.txt
               git checkout -- .
               echo
-              echo "Please run terraform fmt"
+              echo "Please run terraform fmt and commit again"
               exit 1
             fi
       - *save_repo
@@ -96,11 +99,12 @@ jobs:
       - *set_terraform_environment
       - *terraform_init
       - run:
-          name: terraform plan
+          name: Terraform plan
           command: |
             source $BASH_ENV
-            mkdir plan
-            ./tfw ${TF_ENV} plan -input=false -out=plan/${TF_ENV}-tf.plan
+            mkdir -p plan
+            DIR=`pwd`
+            ./tfw ${TF_ENV} plan -input=false -out=${DIR}/plan/${TF_ENV}-tf.plan
       - persist_to_workspace:
           root: *working_directory
           paths:
