@@ -18,11 +18,9 @@ variable "database_subnets" {
   type = "list"
 }
 
-variable "db_retention_period" {
-}
+variable "db_retention_period" {}
 
-variable "db_apply_immediately" {
-}
+variable "db_apply_immediately" {}
 
 variable "nomad_cluster" {
   type = "map"

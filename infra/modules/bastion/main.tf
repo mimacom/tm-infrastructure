@@ -1,21 +1,27 @@
 data "aws_ami" "target_ami" {
   most_recent = true
+
   filter {
     name = "name"
+
     values = [
-      "amzn-ami-hvm-*-x86_64-gp2"
+      "amzn-ami-hvm-*-x86_64-gp2",
     ]
   }
+
   filter {
     name = "virtualization-type"
+
     values = [
-      "hvm"
+      "hvm",
     ]
   }
+
   filter {
     name = "owner-alias"
+
     values = [
-      "amazon"
+      "amazon",
     ]
   }
 }
@@ -25,24 +31,23 @@ data "template_file" "init" {
 }
 
 data "template_cloudinit_config" "cloud_init" {
-
   base64_encode = true
-  gzip = true
+  gzip          = true
 
   part {
     content_type = "text/cloud-config"
-    content = "${data.template_file.init.rendered}"
+    content      = "${data.template_file.init.rendered}"
   }
 }
 
 resource "aws_instance" "default" {
-  ami = "${data.aws_ami.target_ami.id}"
+  ami           = "${data.aws_ami.target_ami.id}"
   instance_type = "t2.micro"
 
   user_data = "${data.template_cloudinit_config.cloud_init.rendered}"
 
   vpc_security_group_ids = [
-    "${var.security_group_id}"
+    "${var.security_group_id}",
   ]
 
   associate_public_ip_address = "true"
@@ -52,7 +57,7 @@ resource "aws_instance" "default" {
   subnet_id = "${var.subnet_id}"
 
   tags = {
-    Name = "${var.app_name}-${terraform.workspace}-bastion"
+    Name        = "${var.app_name}-${terraform.workspace}-bastion"
     Application = "${var.app_name}"
     Environment = "${terraform.workspace}"
   }

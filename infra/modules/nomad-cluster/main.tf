@@ -1,18 +1,23 @@
 data "aws_ami" "target_ami" {
   most_recent = true
+
   filter {
     name = "name"
+
     values = [
-      "mimacom-nomad-consul-docker-amazon-linux-*"
+      "mimacom-nomad-consul-docker-amazon-linux-*",
     ]
   }
+
   filter {
     name = "virtualization-type"
+
     values = [
-      "hvm"
+      "hvm",
     ]
   }
 }
+
 /*
 data "aws_ami" "target_ami" {
   most_recent      = true
@@ -44,40 +49,42 @@ data "template_file" "init" {
 module "servers" {
   source = "github.com/hashicorp/terraform-aws-consul//modules/consul-cluster?ref=v0.3.1"
 
-  cluster_name = "${var.cluster_name}-server"
-  cluster_size = "${var.num_servers}"
+  cluster_name  = "${var.cluster_name}-server"
+  cluster_size  = "${var.num_servers}"
   instance_type = "t2.micro"
 
   # The EC2 Instances will use these tags to automatically discover each other and form a cluster
-  cluster_tag_key = "${var.cluster_tag_key}"
+  cluster_tag_key   = "${var.cluster_tag_key}"
   cluster_tag_value = "${var.cluster_tag_value}"
 
-  ami_id = "${var.ami_id == "" ? data.aws_ami.target_ami.image_id : var.ami_id}"
+  ami_id    = "${var.ami_id == "" ? data.aws_ami.target_ami.image_id : var.ami_id}"
   user_data = "${data.template_cloudinit_config.init_server.rendered}"
 
-  vpc_id = "${var.vpc_ip}"
+  vpc_id     = "${var.vpc_ip}"
   subnet_ids = "${var.subnet_ids}"
 
   # To make testing easier, we allow requests from any IP address here but in a production deployment, we strongly
   # recommend you limit this to the IP address ranges of known, trusted servers inside your VPC.
   allowed_ssh_cidr_blocks = [
-    "0.0.0.0/0"
+    "0.0.0.0/0",
   ]
+
   allowed_inbound_cidr_blocks = [
-    "0.0.0.0/0"
+    "0.0.0.0/0",
   ]
+
   ssh_key_name = "${var.ssh_key_name}"
 
   tags = [
     {
-      key = "Application"
-      value = "${var.app_name}"
+      key                 = "Application"
+      value               = "${var.app_name}"
       propagate_at_launch = true
     },
     {
       propagate_at_launch = true
-      key = "Environment"
-      value = "${terraform.workspace}"
+      key                 = "Environment"
+      value               = "${terraform.workspace}"
     },
   ]
 }
@@ -90,8 +97,10 @@ module "nomad_security_group_rules" {
   # To make testing easier, we allow requests from any IP address here but in a production deployment, we strongly
   # recommend you limit this to the IP address ranges of known, trusted servers inside your VPC.
   security_group_id = "${module.servers.security_group_id}"
+
   allowed_inbound_cidr_blocks = [
-    "0.0.0.0/0"]
+    "0.0.0.0/0",
+  ]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -103,25 +112,24 @@ data "template_file" "run_server" {
   template = "${file("${path.module}/tpl/user-data-server.sh.tpl")}"
 
   vars {
-    cluster_tag_key = "${var.cluster_tag_key}"
+    cluster_tag_key   = "${var.cluster_tag_key}"
     cluster_tag_value = "${var.cluster_tag_value}"
-    num_servers = "${var.num_servers}"
+    num_servers       = "${var.num_servers}"
   }
 }
 
 data "template_cloudinit_config" "init_server" {
-
   base64_encode = true
-  gzip = true
+  gzip          = true
 
   part {
     content_type = "text/cloud-config"
-    content = "${data.template_file.init.rendered}"
+    content      = "${data.template_file.init.rendered}"
   }
 
   part {
     content_type = "text/x-shellscript"
-    content = "${data.template_file.run_server.rendered}"
+    content      = "${data.template_file.run_server.rendered}"
   }
 }
 
@@ -134,49 +142,52 @@ module "clients" {
   # to a specific version of the modules, such as the following example:
   source = "github.com/hashicorp/terraform-aws-nomad//modules/nomad-cluster?ref=v0.4.2"
 
-  cluster_name = "${var.cluster_name}-client"
+  cluster_name  = "${var.cluster_name}-client"
   instance_type = "${var.client_instance_type}"
 
   # Give the clients a different tag so they don't try to join the server cluster
-  cluster_tag_key = "nomad-clients"
+  cluster_tag_key   = "nomad-clients"
   cluster_tag_value = "${var.cluster_name}"
 
   # To keep the example simple, we are using a fixed-size cluster. In real-world usage, you could use auto scaling
   # policies to dynamically resize the cluster in response to load.
   min_size = "${var.num_clients}"
-  max_size = "${var.num_clients}"
+
+  max_size         = "${var.num_clients}"
   desired_capacity = "${var.num_clients}"
 
-  ami_id = "${var.ami_id == "" ? data.aws_ami.target_ami.image_id : var.ami_id}"
+  ami_id    = "${var.ami_id == "" ? data.aws_ami.target_ami.image_id : var.ami_id}"
   user_data = "${data.template_cloudinit_config.init_client.rendered}"
 
-  vpc_id = "${var.vpc_ip}"
+  vpc_id     = "${var.vpc_ip}"
   subnet_ids = "${var.subnet_ids}"
 
   # To make testing easier, we allow Consul and SSH requests from any IP address here but in a production
   # deployment, we strongly recommend you limit this to the IP address ranges of known, trusted servers inside your VPC.
   allowed_ssh_cidr_blocks = [
-    "0.0.0.0/0"
+    "0.0.0.0/0",
   ]
+
   allowed_inbound_cidr_blocks = [
-    "0.0.0.0/0"
+    "0.0.0.0/0",
   ]
+
   ssh_key_name = "${var.ssh_key_name}"
 
   tags = [
     {
-      key = "Name"
-      value = "${var.app_name}-${terraform.workspace}-client"
+      key                 = "Name"
+      value               = "${var.app_name}-${terraform.workspace}-client"
       propagate_at_launch = true
     },
     {
-      key = "Application"
-      value = "${var.app_name}"
+      key                 = "Application"
+      value               = "${var.app_name}"
       propagate_at_launch = true
     },
     {
-      key = "Environment"
-      value = "${terraform.workspace}"
+      key                 = "Environment"
+      value               = "${terraform.workspace}"
       propagate_at_launch = true
     },
   ]
@@ -203,23 +214,22 @@ data "template_file" "run_client" {
   template = "${file("${path.module}/tpl/user-data-client.sh.tpl")}"
 
   vars {
-    cluster_tag_key = "${var.cluster_tag_key}"
+    cluster_tag_key   = "${var.cluster_tag_key}"
     cluster_tag_value = "${var.cluster_tag_value}"
   }
 }
 
 data "template_cloudinit_config" "init_client" {
-
   base64_encode = true
-  gzip = true
+  gzip          = true
 
   part {
     content_type = "text/cloud-config"
-    content = "${data.template_file.init.rendered}"
+    content      = "${data.template_file.init.rendered}"
   }
 
   part {
     content_type = "text/x-shellscript"
-    content = "${data.template_file.run_client.rendered}"
+    content      = "${data.template_file.run_client.rendered}"
   }
 }
