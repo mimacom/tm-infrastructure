@@ -1,7 +1,7 @@
 provider "aws" {
   shared_credentials_file = "~/.aws/credentials"
-  profile = "mimacom"
-  region = "eu-central-1"
+  profile                 = "mimacom"
+  region                  = "eu-central-1"
 }
 
 resource "aws_s3_bucket" "terraform-state-s3-bucket" {
@@ -21,9 +21,9 @@ resource "aws_s3_bucket" "terraform-state-s3-bucket" {
 }
 
 resource "aws_dynamodb_table" "terraform-state-lock" {
-  name = "terraform-state-lock-dynamo"
-  hash_key = "LockID"
-  read_capacity = 20
+  name           = "terraform-state-lock-dynamo"
+  hash_key       = "LockID"
+  read_capacity  = 20
   write_capacity = 20
 
   attribute {
@@ -35,4 +35,3 @@ resource "aws_dynamodb_table" "terraform-state-lock" {
     Name = "DynamoDB Terraform State Lock Table"
   }
 }
-
