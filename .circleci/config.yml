@@ -34,7 +34,7 @@ terraform_init: &terraform_init
   run:
     name: Terraform init
     command: |
-      source $BASH_ENV
+      source $ENV_FILE
       cd infra
       TF_WORKSPACE=${TF_ENV} terraform init -input=false
 
@@ -46,7 +46,7 @@ apply_job: &apply_job
     - run:
         name: Terraform apply
         command: |
-          source $BASH_ENV
+          source $ENV_FILE
           if [[ -f plan/${TF_ENV}-tf.plan ]]; then
             DIR=`pwd`
             cd infra
@@ -64,7 +64,7 @@ jobs:
       - run:
           name: Terraform fmt
           command: |
-            source $BASH_ENV
+            source $ENV_FILE
             if [ $(terraform fmt | grep -v .terraform | tee fmt_result.txt | wc -l) -gt 0 ]; then
               echo "Format of this terraform files is not appropiate:"
               echo
@@ -87,7 +87,7 @@ jobs:
       - run:
           name: Terraform plan
           command: |
-            source $BASH_ENV
+            source $ENV_FILE
             mkdir -p plan
             DIR=`pwd`
             cd infra
