@@ -48,7 +48,7 @@ terraform_init: &terraform_init
     name: terraform init
     command: |
       source $BASH_ENV
-      ./tfw ${TF_ENV} init
+      ./tfw ${TF_ENV} -input=false init
 
 apply_job: &apply_job
   <<: *default_config
@@ -62,7 +62,9 @@ apply_job: &apply_job
         name: terraform apply
         command: |
           source $BASH_ENV
-          ./tfw ${TF_ENV} apply --auto-approve ${TF_ENV}-tf.plan
+          if [[ -f plan/${TF_ENV}-tf.plan ]]; then
+            ./tfw ${TF_ENV} apply -input=false --auto-approve plan/${TF_ENV}-tf.plan
+          fi
 
 jobs:
 
@@ -97,11 +99,12 @@ jobs:
           name: terraform plan
           command: |
             source $BASH_ENV
-            ./tfw ${TF_ENV} plan -out=${TF_ENV}-tf.plan
+            mkdir plan
+            ./tfw ${TF_ENV} plan -input=false -out=plan/${TF_ENV}-tf.plan
       - persist_to_workspace:
           root: *working_directory
           paths:
-            - ${TF_ENV}-tf.plan
+            - plan
 
   apply:
     <<: *apply_job
