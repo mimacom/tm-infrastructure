@@ -23,7 +23,7 @@ set_terraform_environment: &set_terraform_environment
   run:
     name: Set Terraform environment
     command: |
-      cd && touch $BASH_ENV
+      cd && touch $ENV_FILE
       if [ "${CIRCLE_BRANCH}" == "master" ]; then
         echo 'export TF_ENV=prod' >> $ENV_FILE
       else
