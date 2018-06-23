@@ -10,58 +10,43 @@ base_image: &base_image
   hashicorp/terraform:full
 
 working_directory: &working_directory
-  ~/ws
+  /root/ws
 
 default_config: &default_config
   docker:
     - image: *base_image
   working_directory: *working_directory
   environment:
-    BASH_ENV: /root/.bashrc
-
-repo_cache_key: &repo_cache_key
-  tm-repo-{{ .Branch }}-{{ .Revision }}
-
-restore_repo: &restore_repo
-  restore_cache:
-    key: *repo_cache_key
-
-save_repo: &save_repo
-  save_cache:
-    key: *repo_cache_key
-    paths:
-      - *working_directory
+    ENV_FILE: /root/ws/.env
 
 set_terraform_environment: &set_terraform_environment
   run:
     name: Set Terraform environment
     command: |
-      cd && touch $BASH_ENV
+      cd && touch $ENV_FILE
       if [ "${CIRCLE_BRANCH}" == "master" ]; then
-        echo 'export TF_ENV=prod' >> $BASH_ENV
+        echo 'export TF_ENV=prod' >> $ENV_FILE
       else
-        echo 'export TF_ENV=dev' >> $BASH_ENV
+        echo 'export TF_ENV=dev' >> $ENV_FILE
       fi
 
 terraform_init: &terraform_init
   run:
     name: Terraform init
     command: |
-      source $BASH_ENV
-      ./tfw ${TF_ENV} init -input=false
+      source $ENV_FILE
+      cd infra
+      TF_WORKSPACE=${TF_ENV} terraform init -input=false
 
 apply_job: &apply_job
   <<: *default_config
   steps:
-    - *restore_repo
-    - *set_terraform_environment
-    - *terraform_init
     - attach_workspace:
         at: *working_directory
     - run:
         name: Terraform apply
         command: |
-          source $BASH_ENV
+          source $ENV_FILE
           if [[ -f plan/${TF_ENV}-tf.plan ]]; then
             DIR=`pwd`
             cd infra
@@ -79,8 +64,8 @@ jobs:
       - run:
           name: Terraform fmt
           command: |
-            source $BASH_ENV
-            if [ $(./tfw fmt | grep -v .terraform | tee fmt_result.txt | wc -l) -gt 0 ]; then
+            source $ENV_FILE
+            if [ $(terraform fmt | grep -v .terraform | tee fmt_result.txt | wc -l) -gt 0 ]; then
               echo "Format of this terraform files is not appropiate:"
               echo
               cat fmt_result.txt
@@ -90,25 +75,27 @@ jobs:
               echo "Please run terraform fmt and commit again"
               exit 1
             fi
-      - *save_repo
+      - *terraform_init
+      - persist_to_workspace:
+          root: .
+          paths: .
 
   plan:
     <<: *default_config
     steps:
-      - *restore_repo
-      - *set_terraform_environment
-      - *terraform_init
+      - attach_workspace:
+          at: *working_directory
       - run:
           name: Terraform plan
           command: |
-            source $BASH_ENV
+            source $ENV_FILE
             mkdir -p plan
             DIR=`pwd`
-            ./tfw ${TF_ENV} plan -input=false -out=${DIR}/plan/${TF_ENV}-tf.plan
+            cd infra
+            TF_WORKSPACE=${TF_ENV} terraform plan -input=false -var-file=env/${TF_ENV}.tfvars -out=${TF_ENV}-tf.plan
       - persist_to_workspace:
-          root: *working_directory
-          paths:
-            - plan
+          root: .
+          paths: .
 
   apply:
     <<: *apply_job
