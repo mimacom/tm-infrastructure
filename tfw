@@ -63,6 +63,8 @@ exec_goal() {
   if [[ "$CMD" != "output" ]]; then
     VARS="-var-file=env/dev.tfvars"
   fi
+  if [[ "$CMD" != "" ]]; then
+  fi
   TF_WORKSPACE=dev dtf infra ${CMD} ${VARS} "$@"
 }
 

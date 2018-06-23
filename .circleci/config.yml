@@ -64,7 +64,8 @@ apply_job: &apply_job
           source $BASH_ENV
           if [[ -f plan/${TF_ENV}-tf.plan ]]; then
             DIR=`pwd`
-            ./tfw ${TF_ENV} apply -input=false --auto-approve ${DIR}/plan/${TF_ENV}-tf.plan
+            cd infra
+            TF_WORKSPACE=${TF_ENV} terraform apply -input=false --auto-approve ${DIR}/plan/${TF_ENV}-tf.plan
           fi
           echo "No plan generated, skipping.."
 
