@@ -19,3 +19,12 @@ database_subnets = [
   "10.10.29.0/24",
   "10.10.30.0/24"
 ]
+
+db_retention_period = 0
+db_apply_immediately = true
+
+nomad_cluster = {
+  client_instance_type = "t2.medium"
+  num_servers = 1
+  num_clients = 4
+}
