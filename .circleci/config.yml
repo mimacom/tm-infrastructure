@@ -55,7 +55,6 @@ apply_job: &apply_job
   steps:
     - *restore_repo
     - *set_terraform_environment
-    - *terraform_init
     - attach_workspace:
         at: *working_directory
     - run:
@@ -97,7 +96,6 @@ jobs:
     steps:
       - *restore_repo
       - *set_terraform_environment
-      - *terraform_init
       - run:
           name: Terraform plan
           command: |
@@ -105,10 +103,7 @@ jobs:
             mkdir -p plan
             DIR=`pwd`
             ./tfw ${TF_ENV} plan -input=false -out=${DIR}/plan/${TF_ENV}-tf.plan
-      - persist_to_workspace:
-          root: *working_directory
-          paths:
-            - plan
+      - *save_repo
 
   apply:
     <<: *apply_job
