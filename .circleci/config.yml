@@ -75,6 +75,7 @@ jobs:
               echo "Please run terraform fmt and commit again"
               exit 1
             fi
+      - *terraform_init
       - persist_to_workspace:
           root: .
           paths: .
