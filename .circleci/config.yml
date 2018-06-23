@@ -100,8 +100,9 @@ jobs:
           name: Terraform plan
           command: |
             source $BASH_ENV
-            mkdir plan
-            ./tfw ${TF_ENV} plan -input=false -out=plan/${TF_ENV}-tf.plan
+            mkdir -p plan
+            DIR=`pwd`
+            ./tfw ${TF_ENV} plan -input=false -out=${DIR}/plan/${TF_ENV}-tf.plan
       - persist_to_workspace:
           root: *working_directory
           paths:
