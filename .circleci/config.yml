@@ -17,7 +17,7 @@ default_config: &default_config
     - image: *base_image
   working_directory: *working_directory
   environment:
-    BASH_ENV: ~/ws/.env
+    ENV_FILE: ~/ws/.env
 
 set_terraform_environment: &set_terraform_environment
   run:
