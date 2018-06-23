@@ -9,7 +9,8 @@ data "aws_iam_user" "root" {
 
 resource "aws_iam_user_group_membership" "root_membership" {
   groups = [
-    "${aws_iam_group.developers.name}"
+    "${aws_iam_group.developers.name}",
   ]
+
   user = "${data.aws_iam_user.root.user_name}"
 }

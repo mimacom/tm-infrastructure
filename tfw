@@ -42,6 +42,10 @@ goal_prepare() {
   dtf infra init
 }
 
+goal_fmt() {
+  terraform fmt
+}
+
 goal_dev() {
   exec_goal dev "$@"
 }
