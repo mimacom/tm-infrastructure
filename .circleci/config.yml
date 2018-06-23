@@ -10,14 +10,14 @@ base_image: &base_image
   hashicorp/terraform:full
 
 working_directory: &working_directory
-  ~/ws
+  /root/ws
 
 default_config: &default_config
   docker:
     - image: *base_image
   working_directory: *working_directory
   environment:
-    ENV_FILE: ~/ws/.env
+    ENV_FILE: /root/ws/.env
 
 set_terraform_environment: &set_terraform_environment
   run:
