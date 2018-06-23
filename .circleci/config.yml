@@ -63,7 +63,8 @@ apply_job: &apply_job
         command: |
           source $BASH_ENV
           if [[ -f plan/${TF_ENV}-tf.plan ]]; then
-            ./tfw ${TF_ENV} apply -input=false --auto-approve plan/${TF_ENV}-tf.plan
+            DIR=`pwd`
+            ./tfw ${TF_ENV} apply -input=false --auto-approve ${DIR}/plan/${TF_ENV}-tf.plan
           fi
           echo "No plan generated, skipping.."
 
