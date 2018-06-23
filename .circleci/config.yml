@@ -79,7 +79,7 @@ jobs:
           name: Terraform fmt
           command: |
             source $BASH_ENV
-            if [ $(./tfw fmt | grep -v .terraform | tee fmt_result.txt | wc -l) -gt 0 ]; then
+            if [ $(terraform fmt | grep -v .terraform | tee fmt_result.txt | wc -l) -gt 0 ]; then
               echo "Format of this terraform files is not appropiate:"
               echo
               cat fmt_result.txt
@@ -96,13 +96,16 @@ jobs:
     steps:
       - *restore_repo
       - *set_terraform_environment
+      - attach_workspace:
+          at: *working_directory
       - run:
           name: Terraform plan
           command: |
             source $BASH_ENV
             mkdir -p plan
             DIR=`pwd`
-            ./tfw ${TF_ENV} plan -input=false -out=${DIR}/plan/${TF_ENV}-tf.plan
+            cd infra
+            TF_WORKSPACE=${TF_ENV} terraform plan -input=false -var-file=env/${TF_ENV}.tfvars -out=${TF_ENV}-tf.plan
       - *save_repo
 
   apply:
