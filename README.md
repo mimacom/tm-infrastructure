@@ -1,5 +1,3 @@
-[![CircleCI](https://circleci.com/gh/mimacom/tm-infrastructure.svg?style=svg)](https://circleci.com/gh/mimacom/tm-infrastructure)
-
 # Time Manager infrastructure code
 Infrastructure base code for the Time Manager application. It consists of two environments
 `dev` and `prod`.
