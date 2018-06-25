@@ -1,8 +1,9 @@
 #  Local .terraform directories
-**/.terraform/*
+.terraform
 
 # .tfstate files
 *.tfstate
 *.tfstate.*
 
+# keep init state, it's not remote
 !init/terraform.tfstate
