@@ -74,8 +74,6 @@ goal_shuttle() {
   sshuttle -v -r ${BASTION_IP} "${CIDR}" "$@"
 }
 
-set -x
-
 if type -t "goal_$1" &>/dev/null; then
   goal_$1 ${@:2}
 else
