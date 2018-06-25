@@ -1,7 +1,5 @@
 provider "aws" {
-  region = "${local.region}"
-
-  //region = "eu-central-1"
+  region                  = "${local.region}"
   shared_credentials_file = "~/.aws/credentials"
   profile                 = "mimacom"
 }
@@ -18,14 +16,23 @@ terraform {
   }
 }
 
+module "users" {
+  source = "modules/users"
+
+  aws_cli_profile = "mimacom"
+  iam_user_group  = "developers"
+  join_groups     = ["users"]
+}
+
 module "bastion" {
   source = "modules/bastion"
 
-  app_name          = "${local.app_name}"
-  security_group_id = "${module.bastion_sg.this_security_group_id}"
-  subnet_id         = "${module.vpc.public_subnets[0]}"
+  vpc_id    = "${module.vpc.vpc_id}"
+  vpc_cidr  = "${var.cidr}"
+  subnet_id = "${module.vpc.public_subnets[0]}"
 
-  key_name = "${aws_key_pair.local.key_name}"
+  app_name                  = "${local.app_name}"
+  cloud_init_users_fragment = "${module.users.cloud_init_users_fragment}"
 }
 
 module "db" {
@@ -64,14 +71,14 @@ module "db" {
 module "nomad" {
   source = "modules/nomad-cluster"
 
-  vpc_ip     = "${module.vpc.vpc_id}"
-  subnet_ids = "${module.vpc.private_subnets}"
-
+  vpc_id               = "${module.vpc.vpc_id}"
+  subnet_ids           = "${module.vpc.private_subnets}"
+  vpc_cidr             = "${var.cidr}"
   cluster_name         = "${local.app_name}-${terraform.workspace}"
   client_instance_type = "${lookup(var.nomad_cluster, "client_instance_type")}"
   num_servers          = "${lookup(var.nomad_cluster, "num_servers")}"
   num_clients          = "${lookup(var.nomad_cluster, "num_clients")}"
-  ssh_key_name         = "${aws_key_pair.local.key_name}"
 
-  app_name = "${local.app_name}"
+  app_name                  = "${local.app_name}"
+  cloud_init_users_fragment = "${module.users.cloud_init_users_fragment}"
 }

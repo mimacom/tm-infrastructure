@@ -38,10 +38,13 @@ variable "ssh_key_name" {
   default     = ""
 }
 
-variable "vpc_ip" {}
+variable "vpc_id" {}
+variable "vpc_cidr" {}
 
 variable "subnet_ids" {
   type = "list"
 }
 
 variable "app_name" {}
+
+variable "cloud_init_users_fragment" {}

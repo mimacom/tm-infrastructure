@@ -5,3 +5,6 @@ package_upgrade: true
 packages:
  - nc
  - telnet
+ - docker
+runcmd:
+ - service docker start

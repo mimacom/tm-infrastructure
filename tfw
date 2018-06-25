@@ -63,15 +63,18 @@ exec_goal() {
   if [[ "$CMD" != "output" ]]; then
     VARS="-var-file=env/dev.tfvars"
   fi
-  TF_WORKSPACE=dev dtf infra ${CMD} ${VARS} "$@"
+  TF_WORKSPACE=${ENV} dtf infra ${CMD} ${VARS} "$@"
 }
 
 goal_shuttle() {
-  BASTION=`./tfw ${1} output bastion_ip`
-  CIDR=`awk '/cidr/{gsub("\"","");print $3}' infra/env/${1}.tfvars`
+  OUTPUT=`./tfw ${1} output`
+  BASTION_IP=`printf "${OUTPUT}" | awk '/bastion_public_ip/{printf "%s", $3}'`
+  CIDR=`printf "${OUTPUT}" | awk '/vpc_cidr/{printf "%s", $3}'`
   shift
-  sshuttle -v -e "ssh -i infra/keys/id_rsa" -r ec2-user@${BASTION} "${CIDR%%[[:cntrl:]]}" "$@"
+  sshuttle -v -r ${BASTION_IP} "${CIDR}" "$@"
 }
+
+set -x
 
 if type -t "goal_$1" &>/dev/null; then
   goal_$1 ${@:2}
