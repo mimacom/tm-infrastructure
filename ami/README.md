@@ -1,3 +1,5 @@
+# Default readme, needs editing
+
 # Nomad and Consul AMI
 
 This folder shows an example of how to use the [install-nomad module](https://github.com/hashicorp/terraform-aws-nomad/tree/master/modules/install-nomad) from this Module and 

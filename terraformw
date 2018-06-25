@@ -37,8 +37,6 @@ check() { # checks is a tool is working
 
 goal_prepare() {
   check "terraform" "Terraform not installed!" "Terraform available"
-  dtf init init
-  dtf init apply
   dtf infra init
 }
 
@@ -61,13 +59,13 @@ exec_goal() {
   CMD=${1}
   shift
   if [[ "$CMD" != "output" ]]; then
-    VARS="-var-file=env/dev.tfvars"
+    VARS="-var-file=env/${ENV}.tfvars"
   fi
   TF_WORKSPACE=${ENV} dtf infra ${CMD} ${VARS} "$@"
 }
 
 goal_shuttle() {
-  OUTPUT=`./tfw ${1} output`
+  OUTPUT=`./terraformw ${1} output`
   BASTION_IP=`printf "${OUTPUT}" | awk '/bastion_public_ip/{printf "%s", $3}'`
   CIDR=`printf "${OUTPUT}" | awk '/vpc_cidr/{printf "%s", $3}'`
   shift
@@ -80,10 +78,11 @@ else
   echo "usage: $0 <goal>
 
 goal:
-    prepare                  -- make sure everything is set up correctly so this project can actually work
-    dev <commands>           -- work on dev
-    prod <commands>          -- work on prod
-    shuttle <env>
+    prepare                  -- check for required tools and initialize terraform
+    fmt                      -- format the codebase
+    dev <commands>           -- execute terraform goals on dev
+    prod <commands>          -- execute terraform goals on prod
+    shuttle <env>            -- open a transparent access to the chosen environment
 "
   exit 1
 fi
