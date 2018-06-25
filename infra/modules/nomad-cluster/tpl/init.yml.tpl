@@ -5,8 +5,3 @@ package_upgrade: true
 packages:
  - nc
  - telnet
- - docker.io
-groups:
- - docker: [ubuntu]
-runcmd:
- - sudo service docker start

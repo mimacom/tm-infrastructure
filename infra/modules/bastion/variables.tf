@@ -1,15 +1,9 @@
-variable "security_group_id" {
-  default = ""
-}
+variable "vpc_id" {}
 
-variable "key_name" {
-  default = ""
-}
+variable "vpc_cidr" {}
 
-variable "subnet_id" {
-  default = ""
-}
+variable "cloud_init_users_fragment" {}
 
-variable "app_name" {
-  default = ""
-}
+variable "subnet_id" {}
+
+variable "app_name" {}
