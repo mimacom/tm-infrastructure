@@ -1,3 +1,7 @@
+/*
+   This module generates a cloud init fragment that will create new users taken from the provided group
+   on all the instances of the cluster
+*/
 data "external" "users" {
   program = [
     "bash",
