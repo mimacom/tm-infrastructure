@@ -13,7 +13,7 @@ data "aws_ami" "target_ami" {
     name = "virtualization-type"
 
     values = [
-      "hvm",
+      "hvm"
     ]
   }
 }
