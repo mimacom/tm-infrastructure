@@ -1,6 +1,6 @@
 // stable load balancer
-resource "aws_elb" "backend" {
-  name     = "backend"
+resource "aws_elb" "main" {
+  name     = "main"
   internal = false
 
   security_groups = [
@@ -10,6 +10,8 @@ resource "aws_elb" "backend" {
   subnets = [
     "${module.vpc.public_subnets}",
   ]
+
+  idle_timeout = 3600
 
   health_check {
     healthy_threshold   = 2
@@ -35,7 +37,7 @@ resource "aws_elb" "backend" {
   }
 
   tags = {
-    Name        = "backend"
+    Name        = "main"
     Application = "${local.app_name}"
     Environment = "${terraform.workspace}"
   }
@@ -47,7 +49,7 @@ resource "aws_elb" "backend" {
 
 resource "aws_autoscaling_attachment" "asg_attachment" {
   autoscaling_group_name = "${module.nomad.autoscaling_group_name}"
-  elb                    = "${aws_elb.backend.id}"
+  elb                    = "${aws_elb.main.id}"
 }
 
 module "elb_sg" {
