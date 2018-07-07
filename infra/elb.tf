@@ -1,6 +1,6 @@
 // stable load balancer
 data "aws_acm_certificate" "cert" {
-  domain = "www.mimacom-tm.tk"
+  domain = "tm.mimacom.solutions"
   most_recent = true
 }
 
@@ -34,16 +34,6 @@ resource "aws_elb" "main" {
     instance_port = 9999
     instance_protocol = "http"
   }
-
-  // temporary renewal
-  /*
-  listener {
-    lb_port = 80
-    lb_protocol = "TCP"
-    instance_port = 9999
-    instance_protocol = "TCP"
-  }
-  */
 
   tags = {
     Name = "main"
