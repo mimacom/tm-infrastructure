@@ -25,9 +25,3 @@ database_subnets = [
 
 db_retention_period = 0
 db_apply_immediately = true
-
-nomad_cluster = {
-  client_instance_type = "t2.medium"
-  num_servers = 1
-  num_clients = 2
-}
