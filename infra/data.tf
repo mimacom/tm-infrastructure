@@ -7,10 +7,10 @@ data "aws_secretsmanager_secret_version" "data" {
 }
 
 data "aws_route53_zone" "main" {
-  name = "tm.mimacom.solutions"
+  name = "${local.app_name}.${local.dns_zone}"
 }
 
 data "aws_acm_certificate" "cert" {
-  domain = "tm.mimacom.solutions"
+  domain = "${local.app_name}.${local.dns_zone}"
   most_recent = true
 }

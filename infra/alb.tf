@@ -44,8 +44,6 @@ resource "aws_alb_target_group" "public" {
 
   port = 9999
   protocol = "HTTP"
-
-  stickiness = []
 }
 
 resource "aws_alb_listener" "public" {
